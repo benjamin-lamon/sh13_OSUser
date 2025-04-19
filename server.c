@@ -302,10 +302,8 @@ int main(int argc, char *argv[])
 		strcpy(tcpClients[i].name,"-");
 	}
 
-     while (1)
-     {    
+     while (1){    
      	newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-     	
 		if (newsockfd < 0) {
 			error("ERROR on accept");
 		}
@@ -320,10 +318,8 @@ int main(int argc, char *argv[])
         printf("Received packet from %s:%d\nData: [%s]\n\n",
                 inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
 
-        if (fsmServer==0)
-        {
-        	switch (buffer[0])
-        	{
+        if (fsmServer==0){
+        	switch (buffer[0]){
                 	case 'C':
                         	sscanf(buffer,"%c %s %d %s", &com, clientIpAddress, &clientPort, clientName);
                         	printf("COM=%c ipAddress=%s port=%d name=%s\n",com, clientIpAddress, clientPort, clientName);
@@ -379,6 +375,8 @@ int main(int argc, char *argv[])
 						sprintf(reply,"V %d %d", j, tableCartes[0][j]);
 						sendMessageToClient(tcpClients[0].ipAddress, tcpClients[0].port, reply);
 					}
+					//burn en question
+					bzero(reply,256);
 
 					// On envoie ses cartes au joueur 1, ainsi que la ligne qui lui correspond dans tableCartes
 					// RAJOUTER DU CODE ICI
@@ -390,6 +388,8 @@ int main(int argc, char *argv[])
 						sprintf(reply,"V %d %d", j, tableCartes[1][j]);
 						sendMessageToClient(tcpClients[1].ipAddress, tcpClients[1].port, reply);
 					}
+					bzero(reply,256);
+
 
 					// On envoie ses cartes au joueur 2, ainsi que la ligne qui lui correspond dans tableCartes
 					// RAJOUTER DU CODE ICI
@@ -400,6 +400,8 @@ int main(int argc, char *argv[])
 						sprintf(reply,"V %d %d", j, tableCartes[2][j]);
 						sendMessageToClient(tcpClients[2].ipAddress, tcpClients[2].port, reply);
 					}
+					bzero(reply,256);
+
 
 					// On envoie ses cartes au joueur 3, ainsi que la ligne qui lui correspond dans tableCartes
 					// RAJOUTER DU CODE ICI
@@ -409,37 +411,41 @@ int main(int argc, char *argv[])
 						sprintf(reply,"V %d %d", j, tableCartes[3][j]);
 						sendMessageToClient(tcpClients[3].ipAddress, tcpClients[3].port, reply);
 					}
+					bzero(reply,256);
+
 
 					// On envoie enfin un message a tout le monde pour definir qui est le joueur courant=0
 					// RAJOUTER DU CODE ICI
 					sprintf(reply,"M %d", joueurCourant);
 					broadcastMessage(reply);
 					fsmServer=1;
+					bzero(reply,256);
 
 					// À ce stade, le coupable est la carte deck[12].
 				}
-				break;
-                }
-	}
-	else if (fsmServer==1)
-	{
-		switch (buffer[0])
-		{
-                	case 'G':
-				// RAJOUTER DU CODE ICI
-				break;
-                	case 'O':
-				// RAJOUTER DU CODE ICI
-				break;
-			case 'S':
-				// RAJOUTER DU CODE ICI
-				break;
-                	default:
-                        	break;
+
+			break;
+			}
 		}
-        }
-     	close(newsockfd);
-     }
-     close(sockfd);
-     return 0; 
+		else if (fsmServer==1){
+
+			switch (buffer[0]){
+				case 'G':
+					// RAJOUTER DU CODE ICI
+					break;
+				case 'O':
+					// RAJOUTER DU CODE ICI
+					break;
+				case 'S':
+					// RAJOUTER DU CODE ICI
+					break;
+				
+				default:
+					break;
+				}
+		}
+		close(newsockfd);
+	}
+    close(sockfd);
+    return 0; 
 }
