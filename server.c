@@ -42,6 +42,10 @@ struct _client
         char ipAddress[40];
         int port;
         char name[40];
+		int elimine; 	// Utilisé quand un joueur fait une mauvaise accusation;
+						// Lorsque le joueur fait une mauvaise accusation, on lève le flag.
+						// Alors, son tour sera toujours passé.
+						// 0 = pas éliminé, 1 = éliminé. C'est un booléen en somme.
 } tcpClients[4];
 int nbClients;
 int fsmServer;
@@ -300,6 +304,7 @@ int main(int argc, char *argv[])
 		strcpy(tcpClients[i].ipAddress,"localhost");
 		tcpClients[i].port=-1;
 		strcpy(tcpClients[i].name,"-");
+		tcpClients[i].elimine = 0; // À la base, personne n'est éliminé, ça arrive suelement lors d'un maauvais guilt.
 	}
 
      while (1){    
@@ -340,8 +345,9 @@ int main(int argc, char *argv[])
 				// lui envoyer un message personnel pour lui communiquer son id
 
                                 sprintf(reply,"I %d",id);
-								//ligne ~313 dans sh13.c
+								//ligne ~313 dans sh13.c à la base
                                 sendMessageToClient(tcpClients[id].ipAddress, tcpClients[id].port,reply);
+								bzero(reply,256);
 
 				// Envoyer un message broadcast pour communiquer a tout le monde la liste des joueurs actuellement
 				// connectes
@@ -349,6 +355,7 @@ int main(int argc, char *argv[])
                                 sprintf(reply,"L %s %s %s %s", tcpClients[0].name, tcpClients[1].name, tcpClients[2].name, tcpClients[3].name);
                                 // ligne ~317
 								broadcastMessage(reply);
+								bzero(reply,256);
 
 				// Si le nombre de joueurs atteint 4, alors on peut lancer le jeu
 
@@ -432,12 +439,19 @@ int main(int argc, char *argv[])
 			switch (buffer[0]){
 				case 'G':
 					// RAJOUTER DU CODE ICI
+					// truc en rapport avec tcpClients[i].elimine
+					// à faire seulement si le guess est erroné
+					
 					break;
 				case 'O':
 					// RAJOUTER DU CODE ICI
+					// Enquête 2 (symbole)
+
 					break;
 				case 'S':
 					// RAJOUTER DU CODE ICI
+					// Enquête 1 (joueur et symbole)
+
 					break;
 				
 				default:

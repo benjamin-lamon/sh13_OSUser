@@ -10,24 +10,24 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-pthread_t thread_serveur_tcp_id;
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-char gbuffer[256];
-char gServerIpAddress[256];
-int gServerPort;
-char gClientIpAddress[256];
-int gClientPort;
-char gName[256];
-char gNames[4][256];
-int gId;
-int joueurSel;
-int objetSel;
-int guiltSel;
-int guiltGuess[13];
-int tableCartes[4][8];
-int b[3];
-int goEnabled;
-int connectEnabled;
+pthread_t thread_serveur_tcp_id;					//déjà ajouté à la base, à voir si ça sert...
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;	//(j'imagine que oui sinon POURQUOI SERAIENT-ILS LÀ ?)
+char gbuffer[256];			// Game buffer ? (Reçoit les messages du serveur)
+char gServerIpAddress[256];	// à voir dans argv
+int gServerPort;			// à voir ds argv
+char gClientIpAddress[256];	// argv
+int gClientPort;			// argv
+char gName[256];			// nom de notre joueur (en principe c'est celui dans *argv[jspCombien])
+char gNames[4][256];		// noms des joueurs
+int gId;					// ???
+int joueurSel;				// ???
+int objetSel;				// ???
+int guiltSel;				// ???
+int guiltGuess[13];			// ???
+int tableCartes[4][8];		// ???
+int b[3];					// ???
+int goEnabled;				// ???
+int connectEnabled;			// ???
 
 char *nbobjets[]={"5","5","5","5","4","3","3","3"};
 char *nbnoms[]={"Sebastian Moran", "irene Adler", "inspector Lestrade",
@@ -37,6 +37,11 @@ char *nbnoms[]={"Sebastian Moran", "irene Adler", "inspector Lestrade",
 
 volatile int synchro;
 
+
+// fct à utiliser pour multithread.
+// mais pq utiliser ça ?
+// pq utiliser un mutex ?
+// jsuis vraiment confus...
 void *fn_serveur_tcp(void *arg)
 {
         int sockfd, newsockfd, portno;
@@ -62,7 +67,7 @@ void *fn_serveur_tcp(void *arg)
                 exit(1);
         }
 
-        listen(sockfd,5);
+        listen(sockfd,5); // HMMMMMMMMM
         clilen = sizeof(cli_addr);
         while (1)
         {
@@ -72,6 +77,7 @@ void *fn_serveur_tcp(void *arg)
                         printf("accept error\n");
                         exit(1);
                 }
+				//nvm ok i get it
 
                 bzero(gbuffer,256);
                 n = read(newsockfd,gbuffer,255);
@@ -308,7 +314,7 @@ int main(int argc, char ** argv)
 
         if (synchro==1)
         {
-                printf("consomme |%s|\n",gbuffer);
+                printf("consomme |%s|\n",gbuffer); //consomme ou console ???
 		switch (gbuffer[0])
 		{
 			// Message 'I' : le joueur recoit son Id
@@ -319,6 +325,7 @@ int main(int argc, char ** argv)
 			// Message 'L' : le joueur recoit la liste des joueurs
 			case 'L':
 				// RAJOUTER DU CODE ICI
+				// L J1 J2 J3 J4, ce sont des char* donc à voir si on peut utiliser des fonctions sprintf ou sscanf pour les stocker dans un tableau
 
 				break;
 			// Message 'D' : le joueur recoit ses trois cartes
@@ -425,6 +432,11 @@ int main(int argc, char ** argv)
 	for (i=0;i<4;i++)
         	for (j=0;j<8;j++)
         	{
+				//AH
+				//Faut-il utiliser un mutex ici ?
+				//Etant donné qu'on a -- à minima -- accès à tableCartes par le thread serveur
+				//et par le thread de SDL pour l'affichage...
+				// Donc on ne l'utilise que quand on a besoin de changer une des valeurs j'imagine
 			if (tableCartes[i][j]!=-1)
 			{
 				char mess[10];
