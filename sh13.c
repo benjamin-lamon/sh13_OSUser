@@ -42,6 +42,10 @@ volatile int synchro;
 // mais pq utiliser ça ?
 // pq utiliser un mutex ?
 // jsuis vraiment confus...
+// -> avec le tableauCartes qui va être utilisé à la fois dans l'interface graphique
+// et dans le thread serveur. Comme l'interface graphique a "tout le temps" l'accès à tableauCartes,
+// il faut lui restreindre car on va l'utiliser de temps en temps avec les informations recues du serveur.
+// Donc on bloque l'accès à tableauCartes lorsqu'on le met à jour dans le thread serveur.
 void *fn_serveur_tcp(void *arg)
 {
         int sockfd, newsockfd, portno;
@@ -78,7 +82,12 @@ void *fn_serveur_tcp(void *arg)
                         exit(1);
                 }
 				//nvm ok i get it
+				//ok nvm i dont get it, why 5 connections?? 
+				//sure we have 4 players and 1 server, but still, why?
+				//we only have one server per game...
 
+				//optimisation purposes? like: we accept only 5 connections caus it'll be the most we can
+				//have with one turn of the game, 
                 bzero(gbuffer,256);
                 n = read(newsockfd,gbuffer,255);
                 if (n < 0)
@@ -223,10 +232,20 @@ int main(int argc, char ** argv)
     TTF_Font* Sans = TTF_OpenFont("sans.ttf", 15); 
     printf("Sans=%p\n",Sans);
 
-   /* Creation du thread serveur tcp. */
-   printf ("Creation du thread serveur tcp !\n");
-   synchro=0;
-   ret = pthread_create ( & thread_serveur_tcp_id, NULL, fn_serveur_tcp, NULL);
+	/* Creation du thread serveur tcp. */
+	printf ("Creation du thread serveur tcp !\n");
+	synchro=0;
+	ret = pthread_create ( & thread_serveur_tcp_id, NULL, fn_serveur_tcp, NULL);
+	//pthread_create( &(Référence à la variable du thread), (Attributs. Trop compliqué), (fonction renvoyant un pointeur (ici void*, no clue si ça peut être quelque chose d'autre)), (attributs de la fonction))
+	// Peut-être remplacer fn_seruveur_tcp par &fn_serveur_tcp ???
+	
+	// if machin exit gneu gneu thread pas créé type-shit
+
+	// a-t-on besoin de pthread_join ici ?
+	// ok apparemment c'est bloquant jusqu'à la fin du thread. Comme on utilise un read() qui est lui-même bloquant,
+	// ça risque de bloquer encore plus quand on entre dans le thread serveur, et c'est ce qu'on cherche à éviter.
+	// Donc pas the pthread_join ici, juste un thread qui tourne en arrière-plan et qui mutex quand on en a besoin
+	// (c'est-à-dire quand on change tableauCartes)
 
     while (!quit)
     {
@@ -246,6 +265,19 @@ int main(int argc, char ** argv)
 					sprintf(sendBuffer,"C %s %d %s",gClientIpAddress,gClientPort,gName);
 
 					// RAJOUTER DU CODE ICI
+					// AH J'AVAIS PAS VU CA
+					/*
+					
+					
+					
+					ADD STUFF HERE EEEEEEEEEEEEEEEEEEEE
+					(en rapport avec le thread réseau j'imagine, vu qu'on envoie le buffer au serveur)
+					
+					
+					
+					
+					*/
+
 					sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);
 
 					connectEnabled=0;
@@ -280,6 +312,7 @@ int main(int argc, char ** argv)
 						sprintf(sendBuffer,"G %d %d",gId, guiltSel);
 
 					// RAJOUTER DU CODE ICI
+					// THREAD RESEAU AGAIN
 
 					}
 					else if ((objetSel!=-1) && (joueurSel==-1))
@@ -317,6 +350,10 @@ int main(int argc, char ** argv)
                 printf("consomme |%s|\n",gbuffer); //consomme ou console ???
 		switch (gbuffer[0])
 		{
+			// mutex ici aussi ? étant donné qu'on lit des données du buffer, il ne faut pas que le thread réseau
+			// réécrive des données dedans...
+			// même si lire prend moins de temps que d'écrire, ça peut nous mettre dans la sauce
+
 			// Message 'I' : le joueur recoit son Id
 			case 'I':
 				// RAJOUTER DU CODE ICI
@@ -437,6 +474,7 @@ int main(int argc, char ** argv)
 				//Etant donné qu'on a -- à minima -- accès à tableCartes par le thread serveur
 				//et par le thread de SDL pour l'affichage...
 				// Donc on ne l'utilise que quand on a besoin de changer une des valeurs j'imagine
+				// OU ALORS, on l'utilise dans la fonction du thread serveur...
 			if (tableCartes[i][j]!=-1)
 			{
 				char mess[10];
