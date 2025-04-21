@@ -499,18 +499,49 @@ int main(int argc, char *argv[])
 					// RAJOUTER DU CODE ICI
 					// Enquête 2 (symbole)
 					int sender, symbol;
+					sscanf(buffer,"O %d %d", &sender, &symbol);
 					if (sender == joueurCourant){
-						sscanf(buffer,"O %d %d", &sender, &symbol);
-						printf("Enquête 2: %d %d\n", sender, symbol);
+						printf("Enquête 2 demandée par %d sur le symbole %d\n", sender, symbol);
 						//Envoie la valeur de tableCartes[sender][symbol]
-						sprintf(reply,"V %d %d %d", sender, symbol, tableCartes[sender][symbol]);
-						sendMessageToClient(tcpClients[sender].ipAddress, tcpClients[sender].port, reply);	
+						for (int i = 0; i < 4; i++){
+							if (tableCartes[i][symbol] > 0){
+								sprintf(reply,"V %d %d 9", i, symbol); 	// le max de symbole étant 5, 9 nous indique
+																		// que le joueur possède le symbole, pas combien...
+																		// = à préciser + 9 est arbitraire tant qu'on est >5
+								broadcastMessage(reply);
+								bzero(reply,256);
+							}
+							else{
+								sprintf(reply,"V %d %d 0", i, symbol);
+								sendMessageToClient(tcpClients[sender].ipAddress, tcpClients[sender].port, reply);	
+								broadcastMessage(reply);
+								bzero(reply,256);
+							}
+						}
+						//sprintf(reply,"V %d %d %d", sender, symbol, tableCartes[sender][symbol]);
+						//sendMessageToClient(tcpClients[sender].ipAddress, tcpClients[sender].port, reply);	
+						//broadcastMessage(reply);
+						bzero(reply,256);
+						joueurCourant++;
+						joueurCourant %= 4;
 					}
 					
 					break;
 				case 'S':
 					// RAJOUTER DU CODE ICI
 					// Enquête 1 (joueur et symbole)
+					int idSender, idJoueur, idObjet;
+					sscanf(buffer,"S %d %d %d", &idSender, &idJoueur, &idObjet);
+					if (idSender == joueurCourant){
+						printf("Enquête 1 demandée par %d sur %d avec l'objet %d\n", idSender, idJoueur, idObjet);
+						//Envoie la valeur de tableCartes[idJoueur][idObjet]
+						sprintf(reply,"V %d %d %d", idJoueur, idObjet, tableCartes[idJoueur][idObjet]);
+						//sendMessageToClient(tcpClients[idSender].ipAddress, tcpClients[idSender].port, reply);	
+						broadcastMessage(reply);
+						bzero(reply,256);
+						joueurCourant++;
+						joueurCourant %= 4;
+					}
 
 					break;
 				
