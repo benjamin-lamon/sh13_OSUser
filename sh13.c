@@ -276,9 +276,10 @@ int main(int argc, char ** argv)
 		//printf("un event\n");
         	switch (event.type)
         	{
-            		case SDL_QUIT:
-                		quit = 1;
-                		break;
+			case SDL_QUIT:
+				quit = 1;
+				break;
+
 			case  SDL_MOUSEBUTTONDOWN:
 				SDL_GetMouseState( &mx, &my );
 				//printf("mx=%d my=%d\n",mx,my);
@@ -287,7 +288,6 @@ int main(int argc, char ** argv)
 					sprintf(sendBuffer,"C %s %d %s",gClientIpAddress,gClientPort,gName);
 
 					// RAJOUTER DU CODE ICI
-					// AH J'AVAIS PAS VU CA
 					/*
 					
 					
@@ -299,9 +299,9 @@ int main(int argc, char ** argv)
 					
 					*/
 
-					//mutek ?
+					pthread_mutex_lock(&mutex);
 					sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);
-					//dé-mutek ?
+					pthread_mutex_unlock(&mutex);
 
 					connectEnabled=0;
 				}
@@ -334,8 +334,10 @@ int main(int argc, char ** argv)
 						//Accusation (= Guilt(y?))
 						sprintf(sendBuffer,"G %d %d",gId, guiltSel);
 
-					// RAJOUTER DU CODE ICI
-					// THREAD RESEAU AGAIN
+						// RAJOUTER DU CODE ICI
+						pthread_mutex_lock(&mutex);
+						sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);
+						pthread_mutex_unlock(&mutex);
 
 					}
 					else if ((objetSel!=-1) && (joueurSel==-1))
@@ -343,7 +345,10 @@ int main(int argc, char ** argv)
 						//Enquête 2 (sur le symbole)
 						sprintf(sendBuffer,"O %d %d",gId, objetSel);
 
-					// RAJOUTER DU CODE ICI
+						// RAJOUTER DU CODE ICI
+						pthread_mutex_lock(&mutex);
+						sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);
+						pthread_mutex_unlock(&mutex);
 
 					}
 					else if ((objetSel!=-1) && (joueurSel!=-1))
@@ -351,7 +356,10 @@ int main(int argc, char ** argv)
 						//Enquête 1 (sur le joueur et le symbole)
 						sprintf(sendBuffer,"S %d %d %d",gId, joueurSel,objetSel);
 
-					// RAJOUTER DU CODE ICI
+						// RAJOUTER DU CODE ICI
+						pthread_mutex_lock(&mutex);
+						sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);
+						pthread_mutex_unlock(&mutex);
 
 					}
 				}
@@ -362,6 +370,8 @@ int main(int argc, char ** argv)
 					guiltSel=-1;
 				}
 				break;
+
+
 			case  SDL_MOUSEMOTION:
 				SDL_GetMouseState( &mx, &my );
 				break;
@@ -378,6 +388,8 @@ int main(int argc, char ** argv)
 			// même si lire prend moins de temps que d'écrire, ça peut nous mettre dans la sauce
 
 			// Message 'I' : le joueur recoit son Id
+			// question subsidiare : on le met dans quelle variable/structure de donnée cet id?
+			// (question subsidiaire qui vaut pour quasi tous les cases...)
 			case 'I':
 				// RAJOUTER DU CODE ICI
 
