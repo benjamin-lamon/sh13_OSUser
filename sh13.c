@@ -19,13 +19,14 @@ char gClientIpAddress[256];	// argv
 int gClientPort;			// argv
 char gName[256];			// nom de notre joueur (en principe c'est celui dans *argv[jspCombien])
 char gNames[4][256];		// noms des joueurs
-int gId;					// ???
+
+int gId;					// id du joueur (reçu du serveur) ?
 int joueurSel;				// ???
 int objetSel;				// ???
 int guiltSel;				// ???
 int guiltGuess[13];			// ???
-int tableCartes[4][8];		// ???
-int b[3];					// ???
+int tableCartes[4][8];		// to figure out with the turns 
+int b[3];					// Main du joueur (deck[n], deck[n+1], deck[n+2])
 int goEnabled;				// ???
 int connectEnabled;			// ???
 
@@ -392,28 +393,47 @@ int main(int argc, char ** argv)
 			// (question subsidiaire qui vaut pour quasi tous les cases...)
 			case 'I':
 				// RAJOUTER DU CODE ICI
-
+				sscanf(gbuffer,"I %d", &gId);
+				printf("Client ID: %d\n",gId);
 				break;
 			// Message 'L' : le joueur recoit la liste des joueurs
 			case 'L':
 				// RAJOUTER DU CODE ICI
 				// L J1 J2 J3 J4, ce sont des char* donc à voir si on peut utiliser des fonctions sprintf ou sscanf pour les stocker dans un tableau
-
+				sscanf(gbuffer,"L %s %s %s %s", gNames[0], gNames[1], gNames[2], gNames[3]);
+				printf("Player names:\n - %s\n - %s\n - %s\n - %s\n", gNames[0], gNames[1], gNames[2], gNames[3]);
 				break;
 			// Message 'D' : le joueur recoit ses trois cartes
+			// (Cards) D(ealt) ?
 			case 'D':
 				// RAJOUTER DU CODE ICI
-
+				sscanf(gbuffer, "D %d %d %d", &b[0], &b[1], &b[2]);
+				printf("Hand: %d %d %d\n", b[0], b[1], b[2]);
 				break;
 			// Message 'M' : le joueur recoit le n° du joueur courant
 			// Cela permet d'affecter goEnabled pour autoriser l'affichage du bouton go
 			case 'M':
 				// RAJOUTER DU CODE ICI
-
+				int joueurCourant;
+				sscanf(gbuffer,"M %d", &joueurCourant);
+				printf("Current player: %d (indexd from 0)\n", joueurCourant);
+				if (gId==joueurCourant){
+					goEnabled=1;
+				}
+				else{
+					goEnabled=0;
+				}
 				break;
 			// Message 'V' : le joueur recoit une valeur de tableCartes
 			case 'V':
 				// RAJOUTER DU CODE ICI
+						//format : joueur (=ligne), colonne, valeur
+
+				int joueur, colonne, valeurCarte;
+				sscanf(gbuffer,"V %d %d %d", &joueur, &colonne, &valeurCarte);
+				printf("Received: tableCartes[%d][%d] = %d\n", joueur, colonne, valeurCarte);
+				tableCartes[joueur][colonne]=valeurCarte;
+				
 
 				break;
 		}

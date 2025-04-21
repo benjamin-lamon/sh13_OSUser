@@ -345,7 +345,6 @@ int main(int argc, char *argv[])
 				// lui envoyer un message personnel pour lui communiquer son id
 
                                 sprintf(reply,"I %d",id);
-								//ligne ~313 dans sh13.c à la base
                                 sendMessageToClient(tcpClients[id].ipAddress, tcpClients[id].port,reply);
 								bzero(reply,256);
 
@@ -353,7 +352,6 @@ int main(int argc, char *argv[])
 				// connectes
 
                                 sprintf(reply,"L %s %s %s %s", tcpClients[0].name, tcpClients[1].name, tcpClients[2].name, tcpClients[3].name);
-                                // ligne ~317
 								broadcastMessage(reply);
 								bzero(reply,256);
 
@@ -371,19 +369,19 @@ int main(int argc, char *argv[])
 					sprintf(reply,"D %d %d %d", deck[0], deck[1], deck[2]);
 					// envoyer reply au joueur 0
 					sendMessageToClient(tcpClients[0].ipAddress, tcpClients[0].port, reply);
-					/*
-					
-					ATTENTION
-					Il faut peut-être burn le contenu de reply avant de le réutiliser
-					
-					*/
+
+					//ATTENTION
+					//Il faut peut-être burn le contenu de reply avant de le réutiliser
+					bzero(reply,256);
+
 					// Est-ce qu'on lui envoie aussi ce qui lui correspond dans tableCartes ?? I guess??
 					for (int j = 0; j < 8; j++){
-						sprintf(reply,"V %d %d", j, tableCartes[0][j]);
+						//format : joueur (=ligne), colonne, valeur
+						sprintf(reply,"V 0 %d %d", j, tableCartes[0][j]);
 						sendMessageToClient(tcpClients[0].ipAddress, tcpClients[0].port, reply);
+						//burn en question
+						bzero(reply,256);
 					}
-					//burn en question
-					bzero(reply,256);
 
 					// On envoie ses cartes au joueur 1, ainsi que la ligne qui lui correspond dans tableCartes
 					// RAJOUTER DU CODE ICI
@@ -392,10 +390,10 @@ int main(int argc, char *argv[])
 					sendMessageToClient(tcpClients[1].ipAddress, tcpClients[1].port, reply);
 					//idem pour les valeurs de tableCartes
 					for (int j = 0; j < 8; j++){
-						sprintf(reply,"V %d %d", j, tableCartes[1][j]);
+						sprintf(reply,"V 1 %d %d", j, tableCartes[1][j]);
 						sendMessageToClient(tcpClients[1].ipAddress, tcpClients[1].port, reply);
+						bzero(reply,256);
 					}
-					bzero(reply,256);
 
 
 					// On envoie ses cartes au joueur 2, ainsi que la ligne qui lui correspond dans tableCartes
@@ -404,10 +402,10 @@ int main(int argc, char *argv[])
 					sprintf(reply,"D %d %d %d", deck[6], deck[7], deck[8]);
 					sendMessageToClient(tcpClient[2].ipAddress, tcpClients[2].port, reply);
 					for (int j = 0; j < 8; j++){
-						sprintf(reply,"V %d %d", j, tableCartes[2][j]);
+						sprintf(reply,"V 2 %d %d", j, tableCartes[2][j]);
 						sendMessageToClient(tcpClients[2].ipAddress, tcpClients[2].port, reply);
+						bzero(reply,256);
 					}
-					bzero(reply,256);
 
 
 					// On envoie ses cartes au joueur 3, ainsi que la ligne qui lui correspond dans tableCartes
@@ -415,10 +413,11 @@ int main(int argc, char *argv[])
 					sprintf(reply,"D %d %d %d", deck[9], deck[10], deck[11]);
 					sendMessageToClient(tcpClient[3].ipAddress, tcpClient[3].port, reply);
 					for (int j = 0; j < 8; j++){
-						sprintf(reply,"V %d %d", j, tableCartes[3][j]);
+						sprintf(reply,"V 3 %d %d", j, tableCartes[3][j]);
 						sendMessageToClient(tcpClients[3].ipAddress, tcpClients[3].port, reply);
+						bzero(reply,256);
 					}
-					bzero(reply,256);
+					
 
 
 					// On envoie enfin un message a tout le monde pour definir qui est le joueur courant=0
