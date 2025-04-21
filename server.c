@@ -257,6 +257,9 @@ int main(int argc, char *argv[])
         int id;
         char reply[256];
 
+		//srand(time(NULL)); // sans, la coupable est Mycroft Holmes chez moi
+
+
 		//à gérer avec des threads pour que tout le monde ait accès à la mémoire
 		//un thread par client
 		//à chaque fois qu'un client renvoie une info, on check si la "commande" est correcte
