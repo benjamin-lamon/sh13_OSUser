@@ -87,7 +87,15 @@ void *fn_serveur_tcp(void *arg)
 				//we only have one server per game...
 
 				//optimisation purposes? like: we accept only 5 connections caus it'll be the most we can
-				//have with one turn of the game, 
+				//have with one turn of the game? 
+
+				//we need to protect gbuffer caus it'll be used later in the client, and it's used at the same
+				//time here. Since we don't want them to interfere, i have to at lease use it here.
+				//do i have to use it also later? i think so... cause sure we write inside the buffer here,
+				//but later we read it. Should i mutex when reading?
+
+				pthread_mutex_lock(&mutex);
+				printf("Mutex locked. accept %d\n",newsockfd); //debug purposes
                 bzero(gbuffer,256);
                 n = read(newsockfd,gbuffer,255);
                 if (n < 0)
@@ -96,6 +104,7 @@ void *fn_serveur_tcp(void *arg)
                         exit(1);
                 }
                 //printf("%s",gbuffer);
+				printf("Mutex unlocked. Buffer: |%s|\n",gbuffer); //debug puyrposes still
 
                 synchro=1;
 
@@ -132,6 +141,10 @@ void sendMessageToServer(char *ipAddress, int portno, char *mess)
 
         sprintf(sendbuffer,"%s\n",mess);
         n = write(sockfd,sendbuffer,strlen(sendbuffer));
+		
+		//Afficher des infos dans la console. En principe les infos seront bonnes étant donné
+		//qu'on n'est jamais rentré dans les conditions d'erreur
+		printf("IP serveur : %s:%d ; Message : %s\n",ipAddress,portno,sendbuffer);
 
     close(sockfd);
 }
@@ -235,11 +248,20 @@ int main(int argc, char ** argv)
 	/* Creation du thread serveur tcp. */
 	printf ("Creation du thread serveur tcp !\n");
 	synchro=0;
+
+	//OOP NO DO THAT
+	//pthread_mutex_init(&mutex, NULL);
+	// on l'a déjà initialisé ("mutex = PTHREAD_MUTEX_INITIALIZER") donc faut pas le faire une deuxième fois
+	// sinon, undefined behaviour, seg fault or whatever
+
 	ret = pthread_create ( & thread_serveur_tcp_id, NULL, fn_serveur_tcp, NULL);
 	//pthread_create( &(Référence à la variable du thread), (Attributs. Trop compliqué), (fonction renvoyant un pointeur (ici void*, no clue si ça peut être quelque chose d'autre)), (attributs de la fonction))
 	// Peut-être remplacer fn_seruveur_tcp par &fn_serveur_tcp ???
-	
-	// if machin exit gneu gneu thread pas créé type-shit
+
+	if (ret != 0){
+		printf("thread error");
+		exit(1);
+	}
 
 	// a-t-on besoin de pthread_join ici ?
 	// ok apparemment c'est bloquant jusqu'à la fin du thread. Comme on utilise un read() qui est lui-même bloquant,
@@ -275,10 +297,11 @@ int main(int argc, char ** argv)
 					
 					
 					
-					
 					*/
 
+					//mutek ?
 					sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);
+					//dé-mutek ?
 
 					connectEnabled=0;
 				}
