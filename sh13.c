@@ -105,8 +105,9 @@ void *fn_serveur_tcp(void *arg)
                         exit(1);
                 }
                 //printf("%s",gbuffer);
+				
 				printf("Mutex unlocked. Buffer: |%s|\n",gbuffer); //debug puyrposes still
-
+				pthread_mutex_unlock(&mutex);
                 synchro=1;
 
                 while (synchro);

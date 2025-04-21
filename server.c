@@ -441,9 +441,15 @@ int main(int argc, char *argv[])
 				joueurCourant++;
 				joueurCourant %= 4;
 				printf("Joueur courant: %d\n", joueurCourant);
+				sprintf(reply,"M %d", joueurCourant);
+				broadcastMessage(reply);
+				bzero(reply,256);
 			}
 			else{
 				printf("Joueur courant: %d\n", joueurCourant);
+				sprintf(reply,"M %d", joueurCourant);
+				broadcastMessage(reply);
+				bzero(reply,256);
 			}
 
 			switch (buffer[0]){
@@ -459,6 +465,9 @@ int main(int argc, char *argv[])
 							//win
 							sprintf(reply,"Le joueur %d a trouvé le coupable !\nFin de la partie.", joueur);
 							broadcastMessage(reply);
+							sprintf(reply,"Le coupable était %s", nomcartes[deck[12]]);
+							broadcastMessage(reply);
+							printf("END OF GAME\n");
 							close(newsockfd);
 							close(sockfd);
 							fsmServer=0;
@@ -470,6 +479,7 @@ int main(int argc, char *argv[])
 							tcpClients[joueur].elimine = 1;
 							sprintf(reply,"Joueur %d éliminé!", joueur);
 							broadcastMessage(reply);
+							printf("Joueur %d éliminé\n", joueur);
 							elimCount++;
 							//if n-1 people guessd wrong,
 							if (elimCount == 3){
@@ -482,6 +492,8 @@ int main(int argc, char *argv[])
 									}
 								}
 								sprintf(reply,"3 joueurs éliminés. Le joueur gagnant est %d !",winner);
+								broadcastMessage(reply);
+								sprintf(reply,"Le coupable était %s", nomcartes[deck[12]]);
 								broadcastMessage(reply);
 								close(newsockfd);
 								close(sockfd);
