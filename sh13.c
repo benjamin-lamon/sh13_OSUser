@@ -381,7 +381,7 @@ int main(int argc, char ** argv)
 
         if (synchro==1)
         {
-                printf("consomme |%s|\n",gbuffer); //consomme ou console ???
+                printf("console |%s|\n",gbuffer); //consomme ou console ???
 		switch (gbuffer[0])
 		{
 			// mutex ici aussi ? étant donné qu'on lit des données du buffer, il ne faut pas que le thread réseau
@@ -435,6 +435,9 @@ int main(int argc, char ** argv)
 				tableCartes[joueur][colonne]=valeurCarte;
 				
 
+				break;
+			default:
+				printf("Other: %s\n", gbuffer);
 				break;
 		}
 		synchro=0;

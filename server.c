@@ -51,6 +51,7 @@ int nbClients;
 int fsmServer;
 int deck[13]={0,1,2,3,4,5,6,7,8,9,10,11,12};
 int tableCartes[4][8];
+int elimCount = 0;
 char *nomcartes[]=
 {"Sebastian Moran", "Irene Adler", "inspector Lestrade",
   "inspector Gregson", "inspector Baynes", "inspector Bradstreet",
@@ -400,7 +401,7 @@ int main(int argc, char *argv[])
 					// RAJOUTER DU CODE ICI
 					//u get the idea
 					sprintf(reply,"D %d %d %d", deck[6], deck[7], deck[8]);
-					sendMessageToClient(tcpClient[2].ipAddress, tcpClients[2].port, reply);
+					sendMessageToClient(tcpClients[2].ipAddress, tcpClients[2].port, reply);
 					for (int j = 0; j < 8; j++){
 						sprintf(reply,"V 2 %d %d", j, tableCartes[2][j]);
 						sendMessageToClient(tcpClients[2].ipAddress, tcpClients[2].port, reply);
@@ -411,7 +412,7 @@ int main(int argc, char *argv[])
 					// On envoie ses cartes au joueur 3, ainsi que la ligne qui lui correspond dans tableCartes
 					// RAJOUTER DU CODE ICI
 					sprintf(reply,"D %d %d %d", deck[9], deck[10], deck[11]);
-					sendMessageToClient(tcpClient[3].ipAddress, tcpClient[3].port, reply);
+					sendMessageToClient(tcpClients[3].ipAddress, tcpClients[3].port, reply);
 					for (int j = 0; j < 8; j++){
 						sprintf(reply,"V 3 %d %d", j, tableCartes[3][j]);
 						sendMessageToClient(tcpClients[3].ipAddress, tcpClients[3].port, reply);
@@ -435,17 +436,77 @@ int main(int argc, char *argv[])
 		}
 		else if (fsmServer==1){
 
+			if (tcpClients[joueurCourant].elimine == 1){
+				printf("Joueur courant: %d [éliminé]\n", joueurCourant);
+				joueurCourant++;
+				joueurCourant %= 4;
+				printf("Joueur courant: %d\n", joueurCourant);
+			}
+			else{
+				printf("Joueur courant: %d\n", joueurCourant);
+			}
+
 			switch (buffer[0]){
 				case 'G':
 					// RAJOUTER DU CODE ICI
 					// truc en rapport avec tcpClients[i].elimine
 					// à faire seulement si le guess est erroné
-					
+					int joueur, guess;
+					sscanf(buffer,"G %d %d", &joueur, &guess);
+					if (joueur == joueurCourant){
+						printf("Accusation: %d %d\n", joueur, guess);
+					if (guess == deck[12]){
+							//win
+							sprintf(reply,"Le joueur %d a trouvé le coupable !\nFin de la partie.", joueur);
+							broadcastMessage(reply);
+							close(newsockfd);
+							close(sockfd);
+							fsmServer=0;
+							exit(0);
+							break;
+						}
+						else{
+							//eliminate
+							tcpClients[joueur].elimine = 1;
+							sprintf(reply,"Joueur %d éliminé!", joueur);
+							broadcastMessage(reply);
+							elimCount++;
+							//if n-1 people guessd wrong,
+							if (elimCount == 3){
+								//figure out who wins
+								int winner = -1;
+								for (int i = 0; i < 4; i++){
+									if (tcpClients[i].elimine == 0){
+										winner = i;
+										break;
+									}
+								}
+								sprintf(reply,"3 joueurs éliminés. Le joueur gagnant est %d !",winner);
+								broadcastMessage(reply);
+								close(newsockfd);
+								close(sockfd);
+								fsmServer=0;
+								exit(0);
+							}
+							else{
+								joueurCourant++;
+								joueurCourant %= 4;
+							}
+						}
+					}
 					break;
 				case 'O':
 					// RAJOUTER DU CODE ICI
 					// Enquête 2 (symbole)
-
+					int sender, symbol;
+					if (sender == joueurCourant){
+						sscanf(buffer,"O %d %d", &sender, &symbol);
+						printf("Enquête 2: %d %d\n", sender, symbol);
+						//Envoie la valeur de tableCartes[sender][symbol]
+						sprintf(reply,"V %d %d %d", sender, symbol, tableCartes[sender][symbol]);
+						sendMessageToClient(tcpClients[sender].ipAddress, tcpClients[sender].port, reply);	
+					}
+					
 					break;
 				case 'S':
 					// RAJOUTER DU CODE ICI
